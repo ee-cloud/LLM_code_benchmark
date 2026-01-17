@@ -276,8 +276,10 @@ Special thanks to TechNavii for this great project.
   - ※実際には環境変数LMSTUDIO_BASE_URLを変更するのみで使用できます。LMStudioと比較するための実験的な追加です。
   - *Note: Experimental llama-server support: Can be used simply by modifying the LM Studio URL.
 * **Custom UI & Design**: 
-  - `gui/index.html` を中心に、視認性向上のためのデザイン調整を実験的に行っています。　
+  - `gui/index.html` を中心に、視認性向上のためのデザイン調整を実験的に行っています。
+  - ※Coding Taskのみ対応しています。QA Task は未対応です。
   - Minor UI/UX enhancements and design tweaks for the neon-themed dashboard.
+  - Note: Currently optimized for Coding Tasks only; QA Tasks are not yet supported.
 
 ### 🛠 Tips for Windows Users
 * **UI Refresh**: 変更が反映されない場合は、ブラウザで `Ctrl + F5`（キャッシュクリア）を試してください。
