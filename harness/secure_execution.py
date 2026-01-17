@@ -63,7 +63,6 @@ def secure_run(
 
     try:
         if os.name == 'nt':
-            preexec_func = some_function if os.name != 'nt' else None
             result = subprocess.run(
                 resolved_command,
                 stdout=subprocess.PIPE,
@@ -72,7 +71,7 @@ def secure_run(
                 timeout=timeout,
                 check=False,
                 env=process_env,
-                preexec_fn=preexec_func,
+                preexec_fn=None,
                 shell=(os.name == 'nt'),
             )
         else:
