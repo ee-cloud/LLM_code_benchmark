@@ -266,14 +266,14 @@ Special thanks to TechNavii for this great project.
 
 ### 🚀 主な追加・変更点 (Key Improvements)
 * **Windows 11 (Non-WSL) Support**: 
-  - Windowsネイティブ環境での動作を実験的に追加しました。　　　　　　　　
+  - Windowsネイティブ環境での動作を実験的に追加しました。
+  - ※ネイティブと記載していますが、当環境で動作確認したのみです。そのため実験的な追加です。　　　　　　　　
   - Added support for Windows native environments (non-WSL) .
-  - ※ネイティブと記載していますが、当環境で動作確認したのみです。そのため実験的な追加です。
   - *Note: Experimental Native support: Only verified in my personal environment.
 * **llama-server Integration**: 
-  - 推論エンジンとして `llama-server` を利用可能なバックエンドとして実験的に追加しました。　
+  - 推論エンジンとして `llama-server` を利用可能なバックエンドとして実験的に追加しました。
+  - ※実際には環境変数LMSTUDIO_BASE_URLを変更するのみで使用できます。LMStudioの有無で比較するための実験的な追加です。　
   - Integrated `llama-server` as a supported inference backend.
-  - ※実際には環境変数LMSTUDIO_BASE_URLを変更するのみで使用できます。LMStudioと比較するための実験的な追加です。
   - *Note: Experimental llama-server support: Can be used simply by modifying the LM Studio URL.
 * **Custom UI & Design**: 
   - `gui/index.html` を中心に、視認性向上のためのデザイン調整を実験的に行っています。
