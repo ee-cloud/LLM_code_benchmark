@@ -18,6 +18,8 @@ import {
   formatTimestamp,
   renderTaskName,
   getTaskLanguage,
+  initTheme,
+  createMetricCard,
   LANGUAGE_LABELS
 } from './components.js?v=20260110_6';
 
@@ -82,6 +84,10 @@ let allLeaderboardData = [];
 // ============================================================================
 // Initialization
 // ============================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+});
 
 runForm?.addEventListener('submit', startRun);
 runButton?.addEventListener('click', (event) => {
@@ -731,18 +737,18 @@ function renderRun(summary) {
   const completionTokens = summary.token_usage?.completion_tokens ?? 0;
 
   const metrics = [
-    `Models: ${summary.models.join(', ')}`,
-    `Provider: ${summary.provider || 'auto'}`,
-    `Tasks: ${summary.tasks.length}`,
-    `Pass Rate: ${passRate}`,
-    `Total Cost: $${totalCost}`,
-    `Total Duration: ${totalDuration}s`,
-    `Tokens (P/C): ${promptTokens}/${completionTokens}`,
+    { label: 'Models', value: summary.models.join(', ') },
+    { label: 'Provider', value: summary.provider || 'auto' },
+    { label: 'Tasks', value: summary.tasks.length },
+    { label: 'Pass Rate', value: passRate, highlight: true },
+    { label: 'Total Cost', value: `$${totalCost}` },
+    { label: 'Total Duration', value: `${totalDuration}s` },
+    { label: 'Tokens (P/C)', value: `${promptTokens}/${completionTokens}` },
   ];
-  metrics.forEach((text) => {
-    const span = document.createElement('span');
-    span.textContent = text;
-    aggregateMetrics.appendChild(span);
+
+  metrics.forEach(({ label, value, highlight }) => {
+    const card = createMetricCard(label, value, highlight);
+    aggregateMetrics.appendChild(card);
   });
 
   resultsBody.innerHTML = '';
@@ -1087,3 +1093,8 @@ function connectToResumeStream(runId) {
     refreshHistory();
   };
 }
+
+
+// ============================================================================
+// End of file
+// ============================================================================

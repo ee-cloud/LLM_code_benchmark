@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,9 +13,10 @@
     <a href="/ui/index.html" class="nav-brand">Benchmark Harness</a>
     <div class="nav-tabs">
       <a href="/ui/index.html" class="nav-tab active" aria-current="page">Code Tasks</a>
-      <a href="/ui/qa/index.html" class="nav-tab">QA Questions</a>
+      <!-- <a href="/ui/qa/index.html" class="nav-tab">QA Questions</a> -->
     </div>
     <div class="nav-spacer"></div>
+    <!-- Theme Toggle will be inserted here by components.js -->
     <div class="nav-shortcuts">Press <kbd>?</kbd> for shortcuts</div>
   </nav>
 
@@ -31,10 +32,27 @@
         <label>
           Model source
           <select id="model-source-select" class="form-select">
-            <option value="openrouter" selected>OpenRouter</option>
+            <option value="llamaserver" selected>llama-server</option>
             <option value="lmstudio">LM Studio</option>
+            <option value="openrouter">OpenRouter</option>
           </select>
         </label>
+
+        <div id="llamaserver-fields" hidden>
+          <label>
+            llama-server model
+            <select id="llamaserver-model-select" class="form-select"></select>
+          </label>
+          <div id="llamaserver-model-note" class="helper-note"></div>
+        </div>
+
+        <div id="lmstudio-fields" hidden>
+          <label>
+            LM Studio model
+            <select id="lmstudio-model-select" class="form-select"></select>
+          </label>
+          <div id="lmstudio-model-note" class="helper-note"></div>
+        </div>
 
         <div id="openrouter-fields">
           <label>
@@ -48,13 +66,6 @@
           </label>
         </div>
 
-        <div id="lmstudio-fields" hidden>
-          <label>
-            LM Studio model
-            <select id="lmstudio-model-select" class="form-select"></select>
-          </label>
-          <div id="lmstudio-model-note" class="helper-note"></div>
-        </div>
         <label>
           Tasks (optional, comma separated)
           <input type="text" id="task-input" placeholder="python_tool_weather_cli,go_feature_wordcount" />
@@ -68,11 +79,11 @@
           <div class="advanced-grid">
             <label>
               Temperature
-              <input type="number" id="temperature-input" min="0" max="2" step="0.1" value="0.5" />
+              <input type="number" id="temperature-input" min="0" max="2" step="0.1" value="0.0" />
             </label>
             <label>
               Max tokens
-              <input type="number" id="max-tokens-input" min="1" value="200000" />
+              <input type="number" id="max-tokens-input" min="1" value="131072" />
             </label>
             <label>
               Thinking level (optional)

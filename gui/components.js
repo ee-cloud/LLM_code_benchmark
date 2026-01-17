@@ -64,11 +64,8 @@ export function mapStatus(status) {
   if (['fail', 'failed'].includes(normalized)) {
     return { label: 'FAIL', className: 'status-fail', chip: 'fail' };
   }
-  if (normalized === 'api_error') {
-    return { label: 'API ERROR', className: 'status-api-error', chip: 'api-error' };
-  }
-  if (['error', 'exception'].includes(normalized)) {
-    return { label: 'ERROR', className: 'status-fail', chip: 'fail' };
+  if (normalized === 'api_error' || ['error', 'exception'].includes(normalized)) {
+    return { label: 'FAIL', className: 'status-fail', chip: 'fail' };
   }
   if (!normalized || normalized === 'pending' || normalized === 'queued') {
     return { label: 'PENDING', className: 'status-pending', chip: 'pending' };
@@ -83,6 +80,14 @@ export function applyStatus(cell, status) {
   const { label, className, chip } = mapStatus(status);
   cell.className = `status-cell ${className}`;
   cell.innerHTML = `<span class="status-chip ${chip}">${label}</span>`;
+
+  // Highlight parent row if it exists
+  const row = cell.closest('tr');
+  if (row) {
+    row.classList.remove('status-row-pass', 'status-row-fail');
+    if (chip === 'pass') row.classList.add('status-row-pass');
+    if (chip === 'fail') row.classList.add('status-row-fail');
+  }
 }
 
 export function createStatusBadge(status) {
@@ -96,6 +101,23 @@ export function createStatusBadge(status) {
 // ============================================================================
 // Progress Bar Component
 // ============================================================================
+
+export function createMetricCard(label, value, highlight = false) {
+  const card = document.createElement('div');
+  card.className = `metric-card ${highlight ? 'highlight' : ''}`;
+
+  const lbl = document.createElement('div');
+  lbl.className = 'metric-label';
+  lbl.textContent = label;
+
+  const val = document.createElement('div');
+  val.className = 'metric-value';
+  val.textContent = value;
+
+  card.appendChild(lbl);
+  card.appendChild(val);
+  return card;
+}
 
 export function createProgressBar(container) {
   const wrapper = document.createElement('div');
@@ -643,4 +665,87 @@ export function renderTaskName(taskId, taskLanguageMap = {}) {
 
 export function getTaskLanguage(taskId, taskLanguageMap = {}) {
   return taskLanguageMap[taskId] || 'default';
+}
+
+// ============================================================================
+// Theme Management
+// ============================================================================
+
+export function initTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  setTheme(savedTheme);
+
+  // Create toggle button if it doesn't exist
+  if (!document.getElementById('theme-toggle')) {
+    createThemeToggle();
+  }
+
+  // Inject aurora background if it doesn't exist
+  if (!document.querySelector('.aurora-bg')) {
+    const aurora = document.createElement('div');
+    aurora.className = 'aurora-bg';
+    aurora.innerHTML = `
+      <div class="aurora-layer"></div>
+      <div class="aurora-layer"></div>
+      <div class="aurora-layer"></div>
+    `;
+    document.body.prepend(aurora);
+  }
+}
+
+export function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme);
+
+  const icon = document.querySelector('.theme-icon');
+  if (icon) {
+    if (theme === 'dark') icon.textContent = '☀️';
+    else if (theme === 'light') icon.textContent = '🌿';
+    else if (theme === 'third') icon.textContent = '🌑';
+    else icon.textContent = '🌙';
+  }
+}
+
+export function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+  let newTheme = 'dark';
+  if (currentTheme === 'dark') newTheme = 'light';
+  else if (currentTheme === 'light') newTheme = 'third';
+  else if (currentTheme === 'third') newTheme = 'fourth';
+  else newTheme = 'dark';
+  setTheme(newTheme);
+}
+
+function createThemeToggle() {
+  const navSpacer = document.querySelector('.nav-spacer');
+  if (!navSpacer) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'theme-toggle';
+  btn.className = 'ghost theme-toggle-btn';
+  btn.setAttribute('aria-label', 'Toggle light/dark mode');
+  btn.innerHTML = `<span class="theme-icon"></span>`;
+  btn.style.marginLeft = '1rem';
+  btn.style.fontSize = '1.2rem';
+  btn.style.padding = '0.4rem';
+  btn.style.minWidth = '40px';
+  btn.style.height = '40px';
+
+  btn.addEventListener('click', toggleTheme);
+
+  // Insert before the shortcuts help
+  const shortcuts = document.querySelector('.nav-shortcuts');
+  if (shortcuts) {
+    shortcuts.parentNode.insertBefore(btn, shortcuts);
+  } else {
+    navSpacer.parentNode.appendChild(btn);
+  }
+
+  // Set initial icon
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+  const icon = btn.querySelector('.theme-icon');
+  if (currentTheme === 'dark') icon.textContent = '☀️';
+  else if (currentTheme === 'light') icon.textContent = '🌿';
+  else if (currentTheme === 'third') icon.textContent = '🌑';
+  else icon.textContent = '🌙';
 }

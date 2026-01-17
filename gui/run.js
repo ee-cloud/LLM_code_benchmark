@@ -12,6 +12,8 @@ import {
   formatCost,
   renderTaskName,
   getTaskLanguage,
+  initTheme,
+  createMetricCard,
   LANGUAGE_LABELS
 } from './components.js?v=20260110_6';
 
@@ -64,6 +66,8 @@ if (!runId) {
   runTitle.textContent = runId;
   loadRunDetails();
 }
+
+initTheme();
 
 // Initialize filter
 if (attemptsFilterContainer) {
@@ -384,11 +388,11 @@ async function waitForRunCompletion(retryRunId, btn, btnText) {
         handleError('Run not found - retry may have failed to start');
       } else if (!wsConnected) {
         // WebSocket never connected, use polling
-    debugLog('WebSocket failed to connect, using polling fallback');
+        debugLog('WebSocket failed to connect, using polling fallback');
         pollForRun(retryRunId, navigateToRun, handleError);
       } else {
         // WebSocket closed unexpectedly, use polling
-    debugLog('WebSocket closed unexpectedly, using polling fallback');
+        debugLog('WebSocket closed unexpectedly, using polling fallback');
         pollForRun(retryRunId, navigateToRun, handleError);
       }
     };
@@ -490,17 +494,17 @@ function renderRunSummary(summary) {
   const completionTokens = summary.token_usage?.completion_tokens;
 
   const metrics = [
-    `Models: ${summary.models?.join(', ') || '—'}`,
-    `Tasks: ${summary.tasks?.length ?? 0}`,
-    `Pass Rate: ${passRate}`,
-    `Total Cost: ${totalCost != null ? `$${totalCost.toFixed(6)}` : '—'}`,
-    `Total Duration: ${totalDuration != null ? totalDuration.toFixed(2) : '—'}s`,
-    `Tokens (P/C): ${promptTokens ?? 0}/${completionTokens ?? 0}`,
+    { label: 'Models', value: summary.models?.join(', ') || '—' },
+    { label: 'Tasks', value: summary.tasks?.length ?? 0 },
+    { label: 'Pass Rate', value: passRate, highlight: true },
+    { label: 'Total Cost', value: totalCost != null ? `$${totalCost.toFixed(6)}` : '—' },
+    { label: 'Total Duration', value: totalDuration != null ? `${totalDuration.toFixed(2)}s` : '—' },
+    { label: 'Tokens (P/C)', value: `${promptTokens ?? 0}/${completionTokens ?? 0}` },
   ];
-  metrics.forEach((text) => {
-    const span = document.createElement('span');
-    span.textContent = text;
-    runMetrics.appendChild(span);
+
+  metrics.forEach(({ label, value, highlight }) => {
+    const card = createMetricCard(label, value, highlight);
+    runMetrics.appendChild(card);
   });
 
   runMeta.innerHTML = '';
@@ -544,6 +548,8 @@ function renderAttempts(summary) {
     row.dataset.sampleIndex = attempt.sample_index ?? 0;
 
     const { label, className, chip } = mapStatus(attempt.status);
+    if (chip === 'pass') row.classList.add('status-row-pass');
+    if (chip === 'fail') row.classList.add('status-row-fail');
     const language = getTaskLanguage(attempt.task_id, TASK_LANGUAGE);
     const statusLower = attempt.status?.toLowerCase() || '';
     const canRetry = ['error', 'fail', 'failed', 'api_error', 'exception'].includes(statusLower);
