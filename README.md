@@ -273,7 +273,7 @@ Special thanks to TechNavii for this great project.
 * **llama-server Integration**: 
   - 推論エンジンとして `llama-server` を利用可能なバックエンドとして実験的に追加しました。　
   - Integrated `llama-server` as a supported inference backend.
-  - ※LMStudioのURLを変更するのみで使用可能です。そのため実験的な追加です。
+  - ※実際には環境変数LMSTUDIO_BASE_URLを変更するのみで使用できます。LMStudioと比較するための実験的な追加です。
   - *Note: Experimental llama-server support: Can be used simply by modifying the LM Studio URL.
 * **Custom UI & Design**: 
   - `gui/index.html` を中心に、視認性向上のためのデザイン調整を実験的に行っています。　
