@@ -320,6 +320,14 @@ def _normalize_model_id(model: str) -> str:
         return model.split("openrouter/", 1)[1]
     return model
 
+def _is_llamaserver_model(model: str) -> bool:
+    return model.startswith("llamaserver/")
+
+
+def _normalize_llamaserver_model_id(model: str) -> str:
+    if model.startswith("llamaserver/"):
+        return model.split("llamaserver/", 1)[1]
+    return model
 
 def _is_lmstudio_model(model: str) -> bool:
     return model.startswith("lmstudio/")
@@ -329,7 +337,6 @@ def _normalize_lmstudio_model_id(model: str) -> str:
     if model.startswith("lmstudio/"):
         return model.split("lmstudio/", 1)[1]
     return model
-
 
 def _resolve_lms_path() -> str | None:
     resolved = shutil.which("lms")
@@ -417,6 +424,9 @@ def fetch_model_metadata(models: list[str]) -> dict[str, dict[str, Any]]:
         return {}
 
     if not models:
+        return {}
+
+    if all(_is_llamaserver_model(model) for model in models):
         return {}
 
     if all(_is_lmstudio_model(model) for model in models):
@@ -921,6 +931,87 @@ def call_openrouter(
 
     assert last_error is not None  # for type checkers
     raise last_error
+
+def call_llamaserver(
+    prompt: str,
+    model: str,
+    temperature: float,
+    max_tokens: int,
+) -> tuple[str, dict, float]:
+    if requests is None:
+        raise HarnessError("The 'requests' library is required to call llama-server.")
+
+    base_url = SETTINGS.llamaserver_base_url.rstrip("/")
+    url = f"{base_url}/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    }
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": "You produce clean, minimal patches."},
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+    }
+
+    try:
+        start_time = time.perf_counter()
+        response = requests.post(url, headers=headers, json=payload, timeout=SETTINGS.api_call_timeout_seconds)
+        duration = time.perf_counter() - start_time
+    except requests.exceptions.Timeout as exc:
+        raise ProviderError(f"llama-server request timed out after {SETTINGS.api_call_timeout_seconds}s: {exc}") from exc
+    except requests.exceptions.RequestException as exc:
+        raise ProviderError(f"llama-server request failed: {exc}") from exc
+
+    status = response.status_code
+    if status >= 500:
+        raise ProviderError(f"llama-server server error ({status}): {response.text.strip()}")
+    if status >= 400:
+        message = response.text.strip()
+        try:
+            error_payload = response.json()
+        except ValueError:
+            error_payload = None
+        if isinstance(error_payload, dict):
+            message = (
+                error_payload.get("error", {}).get("message")
+                or error_payload.get("message")
+                or error_payload.get("detail")
+                or message
+            )
+        raise HarnessError(f"llama-server request failed ({status}): {message}")
+
+    try:
+        data = response.json()
+    except (requests.exceptions.JSONDecodeError, ValueError):
+        content_type = response.headers.get("content-type", "unknown")
+        body_preview = response.text.strip()
+        if len(body_preview) > 512:
+            body_preview = f"{body_preview[:512]}..."
+        raise ProviderError(
+            "llama-server returned a non-JSON response payload. "
+            f"status={status} content-type={content_type} preview={body_preview!r}"
+        )
+
+    choices = data.get("choices") if isinstance(data, dict) else None
+    first = choices[0] if isinstance(choices, list) and choices else {}
+    message_obj = (first or {}).get("message") or {}
+    content = message_obj.get("content", "")
+    if isinstance(content, list):
+        parts: list[str] = []
+        for item in content:
+            if isinstance(item, dict) and item.get("type") == "text" and isinstance(item.get("text"), str):
+                parts.append(item["text"])
+        content = "".join(parts)
+
+    cleaned = str(content or "").strip()
+    if not cleaned:
+        raise EmptyResponseError("llama-server returned empty content")
+
+    return cleaned, data, duration
 
 
 def call_lmstudio(
@@ -1662,7 +1753,10 @@ def evaluate_attempt(
         return safe.strip("-_") or "base"
 
     level_suffix = _sanitize_level_for_dir(thinking_level)
-    attempt_id = f"{task_id}__{model.replace('/', '_')}__sample{sample_index:02d}__lvl_{level_suffix}"
+    if os.name == 'nt':
+        attempt_id = f"{task_id}__{model.replace('/', '_').replace(':', '_')}__sample{sample_index:02d}__lvl_{level_suffix}"
+    else:
+        attempt_id = f"{task_id}__{model.replace('/', '_')}__sample{sample_index:02d}__lvl_{level_suffix}"
     attempt_dir = run_dir / attempt_id
     store_text(attempt_dir / "prompt.txt", prompt)
     attempt_timer = time.perf_counter()
@@ -1699,6 +1793,13 @@ def evaluate_attempt(
                 raw_response, response_meta, api_latency = call_lmstudio(
                     prompt,
                     _normalize_lmstudio_model_id(model),
+                    temperature,
+                    max_tokens,
+                )
+            elif _is_llamaserver_model(model):
+                raw_response, response_meta, api_latency = call_llamaserver(
+                    prompt,
+                    _normalize_llamaserver_model_id(model),
                     temperature,
                     max_tokens,
                 )
@@ -2334,6 +2435,9 @@ def retry_api_error_attempts(
     if any(_is_lmstudio_model(model) for model in models):
         unload_lmstudio_models()
 
+    #if any(_is_llamaserver_model(model) for model in models):
+    #    pass
+
     return summary
 
 
@@ -2476,6 +2580,9 @@ def retry_failed_attempts(
 
     if any(_is_lmstudio_model(model) for model in models):
         unload_lmstudio_models()
+
+    #if any(_is_llamaserver_model(model) for model in models):
+    #    pass
 
     return summary
 
@@ -2720,6 +2827,9 @@ def resume_incomplete_run(
     if any(_is_lmstudio_model(model) for model in all_models):
         unload_lmstudio_models()
 
+    #if any(_is_llamaserver_model(model) for model in models):
+    #    pass
+
     return summary
 
 
@@ -2956,6 +3066,9 @@ def run_tasks(
 
     if any(_is_lmstudio_model(model) for model in original_models):
         unload_lmstudio_models()
+
+    #if any(_is_llamaserver_model(model) for model in models):
+    #    pass
 
     return summary
 

@@ -18,6 +18,7 @@ class HarnessSettings(BaseSettings):
     default_model: str = "openrouter/google/gemini-pro"
     default_temperature: float = 0.5
     default_max_tokens: int = 200000
+    llamaserver_base_url: str = "http://127.0.0.1:8080/v1"
     lmstudio_base_url: str = "http://127.0.0.1:1234/v1"
     include_tests_by_default: bool = False
     install_deps_by_default: bool = False

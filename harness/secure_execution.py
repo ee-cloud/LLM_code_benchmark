@@ -3,10 +3,21 @@
 from __future__ import annotations
 
 import logging
-import resource
 import subprocess
 from pathlib import Path
 from collections.abc import Iterable
+
+try:
+    import resource
+except ImportError:
+    import os
+    # Windows用: resourceモジュールが存在しない場合にダミーオブジェクトを作成
+    class MockResource:
+        RLIMIT_AS = 0
+        RLIMIT_CPU = 0
+        def getrlimit(self, *args): return (0, 0)
+        def setrlimit(self, *args): pass
+    resource = MockResource()
 
 logger = logging.getLogger(__name__)
 
@@ -38,27 +49,42 @@ def secure_run(
 
     def set_limits() -> None:
         memory_bytes = max_memory_mb * 1024 * 1024
-        try:
-            resource.setrlimit(resource.RLIMIT_AS, (memory_bytes, memory_bytes))
-        except (ValueError, OSError):
-            logger.warning("Failed to set memory limit to %dMB", max_memory_mb)
-        try:
-            resource.setrlimit(resource.RLIMIT_CPU, (timeout, timeout + 1))
-        except (ValueError, OSError):
-            logger.warning("Failed to set CPU limit to %ds", timeout)
+        if os.name != 'nt':
+            try:
+                resource.setrlimit(resource.RLIMIT_AS, (memory_bytes, memory_bytes))
+            except (ValueError, OSError):
+                logger.warning("Failed to set memory limit to %dMB", max_memory_mb)
+            try:
+                resource.setrlimit(resource.RLIMIT_CPU, (timeout, timeout + 1))
+            except (ValueError, OSError):
+                logger.warning("Failed to set CPU limit to %ds", timeout)
 
     process_env = env.copy() if env else None
 
     try:
-        result = subprocess.run(
-            resolved_command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=str((cwd or workspace_path).resolve()),
-            timeout=timeout,
-            check=False,
-            env=process_env,
-            preexec_fn=set_limits,
+        if os.name == 'nt':
+            preexec_func = some_function if os.name != 'nt' else None
+            result = subprocess.run(
+                resolved_command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                cwd=str((cwd or workspace_path).resolve()),
+                timeout=timeout,
+                check=False,
+                env=process_env,
+                preexec_fn=preexec_func,
+                shell=(os.name == 'nt'),
+            )
+        else:
+            result = subprocess.run(
+                resolved_command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                cwd=str((cwd or workspace_path).resolve()),
+                timeout=timeout,
+                check=False,
+                env=process_env,
+                preexec_fn=set_limits,
         )
     except subprocess.TimeoutExpired as exc:
         return subprocess.CompletedProcess(
