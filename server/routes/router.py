@@ -888,3 +888,48 @@ RunSummary.model_rebuild()
 RunListResponse.model_rebuild()
 IncompleteAttemptsResponse.model_rebuild()
 ResumeIncompleteResponse.model_rebuild()
+
+@router.get("/models/llamaserver", tags=["models"])
+def list_llamaserver_models() -> dict[str, Any]:
+    base_url = (settings.llamaserver_base_url or "").rstrip("/")
+    if not base_url:
+        raise HTTPException(status_code=500, detail="llama-server base URL is not configured")
+
+    models_url = f"{base_url}/models"
+
+    request = Request(models_url, headers={"Accept": "application/json"})
+    try:
+        # nosec B310: URLs are localhost http:// only (from validated config)
+        with urlopen(request, timeout=3) as response:  # nosec B310
+            raw = response.read().decode("utf-8")
+    except (URLError, HTTPError) as exc:
+        raise HTTPException(status_code=503, detail=f"Unable to reach llama-server at {models_url}: {exc}")
+
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=502, detail=f"llama-server returned a non-JSON response")
+
+    raw_models = parsed.get("data") if isinstance(parsed, dict) else None
+    if not isinstance(raw_models, list):
+        raise HTTPException(status_code=502, detail="llama-server response does not contain valid models list")
+
+    models: list[dict[str, Any]] = []
+    for entry in raw_models:
+        if not isinstance(entry, dict):
+            continue
+        model_id = entry.get("id")
+        if not model_id or not isinstance(model_id, str):
+            continue
+        models.append(
+            {
+                "id": model_id,
+                "context_length": _extract_lmstudio_context_length(entry),
+            }
+        )
+
+    return {
+        "base_url": base_url,
+        "models": models,
+    }
+
