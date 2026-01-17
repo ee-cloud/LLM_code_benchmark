@@ -39,6 +39,7 @@ class Settings(BaseSettings):
 
     api_token: str | None = Field(default=None, validation_alias="BENCHMARK_API_TOKEN")
     lmstudio_base_url: str = "http://127.0.0.1:1234/v1"
+    llamaserver_base_url: str = "http://127.0.0.1:8080/v1"
 
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     api: APISettings = Field(default_factory=APISettings)
