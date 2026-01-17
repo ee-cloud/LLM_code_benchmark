@@ -240,3 +240,43 @@ Most tasks fail today because the reference solution is intentionally missing. T
 
 ---
 Happy benchmarking! Feel free to extend the catalog, customize the dashboard, or integrate the harness into larger evaluation pipelines.
+
+
+
+---
+
+## 💡 This Fork: Windows 11 & llama-server Optimization
+**日本語 / English (Bilingual)**
+
+このリポジトリは [TechNavii/LLM_code_benchmark](https://github.com/TechNavii/LLM_code_benchmark) の実験的な個人用フォークです。主な目的は、Windows環境での動作最適化と推論バックエンドの拡張です。
+This is a personal fork of [TechNavii/LLM_code_benchmark](https://github.com/TechNavii/LLM_code_benchmark), focused on **Windows 11 native optimization** and backend expansion.
+
+素晴らしい基盤を公開されている TechNavii様 に深く感謝いたします。
+
+### 🚀 主な追加・変更点 (Key Improvements)
+* **Windows 11 (Non-WSL) Support**: 
+  - Windowsネイティブ環境での動作を実験的に追加しました。　　　　　　　　
+  - Added support for Windows native environments (non-WSL) .
+  - ※ネイティブと記載していますが、当環境で動作確認したのみです。そのため実験的な追加です。
+* **llama-server Integration**: 
+  - 推論エンジンとして `llama-server` を利用可能なバックエンドとして実験的に追加しました。　
+  - Integrated `llama-server` as a supported inference backend.
+  - ※LMStudioのURLを変更するのみで使用可能です。そのため実験的な追加です。
+* **Custom UI & Design**: 
+  - `gui/index.html` を中心に、視認性向上のためのデザイン調整を実験的に行っています。　
+  - Minor UI/UX enhancements and design tweaks for the neon-themed dashboard.
+
+### ⚠️ 注意事項 (Important Notes)
+1. **本家への配慮 (Contact Policy)**:
+   - このフォーク独自の変更内容（Windows対応や独自UIなど）について、**本家リポジトリの作者様へ問い合わせることは絶対にお控えください。**
+   - **DO NOT** contact the original author regarding any issues or changes specific to this fork.
+2. **互換性 (Compatibility)**:
+   - 本家との互換性は最大限維持していますが、機能拡張のために一部で**破壊的な変更**を含む場合があります。
+   - While maintaining compatibility is a priority, this fork may contain breaking changes to accommodate new features.
+3. **免責事項 (No Warranty)**:
+   - 本リポジトリは **MIT License** のもとで提供されます。個人による実験的プロジェクトであり、利用に関する責任は負いかねます（問い合わせへの対応義務も負いません）。
+   - Provided "as is" under the MIT License. I am not responsible for any issues arising from its use, nor do I have any obligation to provide support.
+
+### 🛠 Tips for Windows Users
+* **UI Refresh**: 変更が反映されない場合は、ブラウザで `Ctrl + F5`（キャッシュクリア）を試してください。
+* If UI updates aren't visible, please use `Ctrl + F5` to bypass the browser cache.
