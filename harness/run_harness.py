@@ -1860,8 +1860,11 @@ def evaluate_attempt(
         working_dir = eval_config.get("working_dir")
         process = run_evaluation(command, workspace_path, timeout, env_updates, working_dir)
 
-        stdout_text = truncate_log(process.stdout.decode("utf-8"))
-        stderr_text = truncate_log(process.stderr.decode("utf-8"))
+        #stdout_text = truncate_log(process.stdout.decode("utf-8"))
+        #stderr_text = truncate_log(process.stderr.decode("utf-8"))
+        stdout_text = truncate_log(process.stdout.decode(os.device_encoding(1) or "utf-8", errors="replace"))
+        stderr_text = truncate_log(process.stderr.decode(os.device_encoding(1) or "utf-8", errors="replace"))
+    
         store_text(attempt_dir / "stdout.log", stdout_text)
         store_text(attempt_dir / "stderr.log", stderr_text)
 
