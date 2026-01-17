@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Run Details • Benchmark Harness</title>
   <link rel="stylesheet" href="/ui/style.css" />
 </head>
+
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
-  
+
   <nav class="nav-bar" role="navigation" aria-label="Main navigation">
     <a href="/ui/index.html" class="nav-brand">Benchmark Harness</a>
     <div class="nav-tabs">
       <a href="/ui/index.html" class="nav-tab">Code Tasks</a>
-      <a href="/ui/qa/index.html" class="nav-tab">QA Questions</a>
+      <!-- <a href="/ui/qa/index.html" class="nav-tab">QA Questions</a> -->
     </div>
     <div class="nav-spacer"></div>
+    <!-- Theme Toggle will be inserted here by components.js -->
     <div class="nav-shortcuts">Press <kbd>?</kbd> for shortcuts</div>
   </nav>
 
@@ -51,7 +54,8 @@
         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
           <h2 id="attempts-heading">Attempts</h2>
           <div class="export-buttons">
-            <button type="button" class="ghost" id="export-attempts-csv" aria-label="Export attempts to CSV">Export CSV</button>
+            <button type="button" class="ghost" id="export-attempts-csv" aria-label="Export attempts to CSV">Export
+              CSV</button>
           </div>
         </div>
         <div id="attempts-filter-container"></div>
@@ -88,4 +92,5 @@
 
   <script src="/ui/run.js?v=20251223" type="module"></script>
 </body>
+
 </html>
