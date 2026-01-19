@@ -261,7 +261,7 @@ Special thanks to TechNavii for this great project.
    - 本家との互換性は最大限維持していますが、機能拡張のために一部で**破壊的な変更**を含む場合があります。
    - While maintaining compatibility is a priority, this fork may contain breaking changes to accommodate new features.
 3. **免責事項 (No Warranty)**:
-   - 本リポジトリの変更内容はMIT Licence のもとで提供されます。変更内容以外は本家様に従います。個人による実験的プロジェクトであり、利用に関する責任は負いかねます（問い合わせへの対応義務も負いません）。
+   - 本リポジトリの変更内容はMIT Licence(https://mit-license.org/) のもとで提供されます。変更内容以外は本家様に従います。個人による実験的プロジェクトであり、利用に関する責任は負いかねます（問い合わせへの対応義務も負いません）。
    - Provided "as is" under the MIT License. I am not responsible for any issues arising from its use, nor do I have any obligation to provide support.
 
 ### 🚀 主な追加・変更点 (Key Improvements)
