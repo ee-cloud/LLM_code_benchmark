@@ -275,9 +275,9 @@ Special thanks to TechNavii for this great project.
 
 * **llama-server Integration**
     * 推論バックエンドとして `llama-server` を利用できるよう調整しました（実験的実装）。
-    * *Note: 環境変数 `LMSTUDIO_BASE_URL` を変更することで、LM Studioとの比較・使い分けが可能です。*
+    * *Note: 環境変数 `LMSTUDIO_BASE_URL` を変更することで、LM Studioとの比較・使い分けが可能です。*　特に使い分けが不要の場合，環境変数 `LMSTUDIO_BASE_URL`を変更するのみで動作可能です。
     * Integrated `llama-server` as an experimental inference backend.
-    * *Note: Switch between LM Studio and llama-server by modifying the `LMSTUDIO_BASE_URL` environment variable.*
+    * *Note: Switch between LM Studio and llama-server by modifying the `LMSTUDIO_BASE_URL` environment variable.*　If no specific configuration is required, you can simply change the LMSTUDIO_BASE_URL environment variable to run it.
 
 * **Custom UI & Design**
     * `gui/index.html` を中心に、視認性向上のためのデザイン調整を行いました。
