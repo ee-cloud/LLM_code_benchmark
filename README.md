@@ -267,21 +267,32 @@ Special thanks to TechNavii for this great project.
    - This is an experimental personal project provided "as is." The author is not responsible for any issues arising from its use and is under no obligation to provide support.
 
 ### 🚀 主な追加・変更点 (Key Improvements)
-* **Windows 11 (Non-WSL) Support**: 
-  - Windowsネイティブ環境での動作を実験的に追加しました。
-  - ※ネイティブと記載していますが、当環境で動作確認したのみです。そのため実験的な追加です。　　　　　　　　
-  - Added support for Windows native environments (non-WSL) .
-  - *Note: Experimental Native support: Only verified in my personal environment.
-* **llama-server Integration**: 
-  - 推論エンジンとして `llama-server` を利用可能なバックエンドとして実験的に追加しました。
-  - ※実際には環境変数LMSTUDIO_BASE_URLを変更するのみで使用できます。LMStudioの有無で比較するための実験的な追加です。　
-  - Integrated `llama-server` as a supported inference backend.
-  - *Note: Experimental llama-server support: Can be used simply by modifying the LM Studio URL.
-* **Custom UI & Design**: 
-  - `gui/index.html` を中心に、視認性向上のためのデザイン調整を実験的に行っています。
-  - ※Coding Taskのみ対応しています。QA Task は未対応です。
-  - Minor UI/UX enhancements and design tweaks for the neon-themed dashboard.
-  - Note: Currently optimized for Coding Tasks only; QA Tasks are not yet supported.
+* **Windows 11 (Non-WSL) Support**
+    * Windowsネイティブ環境での動作を実験的に追加しました。
+    * *Note: 当方の個人環境でのみ動作確認済みです。*
+    * Added experimental support for Windows native environments (non-WSL).
+    * *Note: Verified only in my personal environment.*
+
+* **llama-server Integration**
+    * 推論バックエンドとして `llama-server` を利用できるよう調整しました（実験的実装）。
+    * *Note: 環境変数 `LMSTUDIO_BASE_URL` を変更することで、LM Studioとの比較・使い分けが可能です。*
+    * Integrated `llama-server` as an experimental inference backend.
+    * *Note: Switch between LM Studio and llama-server by modifying the `LMSTUDIO_BASE_URL` environment variable.*
+
+* **Custom UI & Design**
+    * `gui/index.html` を中心に、視認性向上のためのデザイン調整を行いました。
+    * *Note: 現在は **Code Tasks** のみに最適化されており、QA Task は未対応です。*
+    * Enhanced UI/UX and design tweaks for the dashboard.
+    * *Note: Currently optimized for **Code Tasks** only; QA Tasks are not yet supported.*
+
+## 📅 今後のロードマップ (Roadmap)
+* **Manual Evaluation for Japanese NLP Tasks**
+    * 既存の自動評価（Code Taskのdiff評価、QA TaskのJudge Model評価）に加え、日本語NLPタスクにおいてユーザー自身が回答を直接評価・採点できる**手動評価モード**の追加を検討しています。
+    * Planned addition of a **Manual Evaluation Mode** for Japanese NLP tasks, complementing the existing automated evaluations (diff-based for Code Tasks and Judge Model-based for QA Tasks).
+
+* **Web-based Task Creation Tool**
+    * 必要な内容を画面から入力するだけで、新規タスクの構成ファイル生成からシステムへの自動登録までを完結させる機能を検討しています。
+    * Planned development of a web-based tool to easily create, configure, and instantly register new tasks via a simple UI.
 
 ### 🛠 Tips for Windows Users
 * **UI Refresh**: 変更が反映されない場合は、ブラウザで `Ctrl + F5`（キャッシュクリア）を試してください。
