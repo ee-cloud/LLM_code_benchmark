@@ -285,9 +285,9 @@ Special thanks to TechNavii for this great project.
     * Enhanced UI/UX and design tweaks for the dashboard.
     * *Note: Currently optimized for **Code Tasks** only; QA Tasks are not yet supported.*
 
-## 📅 今後のロードマップ (Roadmap)
+### 📅 今後のロードマップ (Roadmap)
 * **Manual Evaluation for Japanese NLP Tasks**
-    * 既存の自動評価（Code Taskのdiff評価、QA TaskのJudge Model評価）に加え、日本語NLPタスクにおいてユーザー自身が回答を直接評価・採点できる**手動評価モード**の追加を検討しています。
+    * 既存の自動評価（Code Taskのdiff自動評価、QA TaskのJudge Model自動評価）に加え、日本語NLPタスクにおいてユーザー自身が回答を直接評価・採点できる手動評価モードの追加を検討しています。
     * Planned addition of a **Manual Evaluation Mode** for Japanese NLP tasks, complementing the existing automated evaluations (diff-based for Code Tasks and Judge Model-based for QA Tasks).
 
 * **Web-based Task Creation Tool**
