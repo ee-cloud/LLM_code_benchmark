@@ -261,8 +261,10 @@ Special thanks to TechNavii for this great project.
    - 本家との互換性は最大限維持していますが、機能拡張のために一部で**破壊的な変更**を含む場合があります。
    - While maintaining compatibility is a priority, this fork may contain breaking changes to accommodate new features.
 3. **免責事項 (No Warranty)**:
-   - 本リポジトリの変更内容はMIT Licence(https://mit-license.org/) のもとで提供されます。変更内容以外は本家様に従います。個人による実験的プロジェクトであり、利用に関する責任は負いかねます（問い合わせへの対応義務も負いません）。
-   - Provided "as is" under the MIT License. I am not responsible for any issues arising from its use, nor do I have any obligation to provide support.
+   - 本リポジトリの変更内容は [MIT License](https://mit-license.org/)のもとで提供されます。それ以外の箇所については元リポジトリの規約に従います。
+   - Modifications in this repository are licensed under the MIT License. Other parts follow the original project's terms.
+   - 個人の実験的プロジェクトにつき、本ソフトウェアの使用に関して作者は一切の責任を負いません。また、サポートや問い合わせへの対応義務も負いかねます
+   - This is an experimental personal project provided "as is." The author is not responsible for any issues arising from its use and is under no obligation to provide support.
 
 ### 🚀 主な追加・変更点 (Key Improvements)
 * **Windows 11 (Non-WSL) Support**: 
