@@ -244,7 +244,8 @@ Happy benchmarking! Feel free to extend the catalog, customize the dashboard, or
 
 
 ---
-以降，forkリポジトリの追記   Modifications by ee-cloud (details below)  :
+
+> **Modifications by ee-cloud (details below):**　 
 
 ## 💡 This Fork: Windows 11 & llama-server Optimization & Other
 
