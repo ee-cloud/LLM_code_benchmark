@@ -265,7 +265,7 @@ Special thanks to TechNavii for this great project.
 3. **免責事項 (No Warranty)**:
    - 本リポジトリの変更内容は [MIT License](https://mit-license.org/)のもとで提供されます。それ以外の箇所については元リポジトリの規約に従います。
    - Modifications in this repository are licensed under the [MIT License](https://mit-license.org/). Other parts follow the original project's terms.
-   - 個人の実験的プロジェクトにつき、本ソフトウェアの使用に関して作者は一切の責任を負いません。また、サポートや問い合わせへの対応義務も負いかねます
+   - 個人の実験的プロジェクトにつき、本ソフトウェアの使用に関して作者は一切の責任を負いません。また、サポートや問い合わせへの対応義務も負いかねます。
    - This is an experimental personal project provided "as is." The author is not responsible for any issues arising from its use and is under no obligation to provide support.
 
 ### 🚀 主な追加・変更点 (Key Improvements)
@@ -306,31 +306,29 @@ Special thanks to TechNavii for this great project.
 * Note: The following items are currently in the conceptual stage and include many experimental ideas and future "visions." While some of these may be purely speculative at this point, we intend to explore these possibilities to expand the project's potential.
 
 1. Advanced Task Expansion (高度なタスクの拡充)
-* RAG・情報抽出・分類・Tool Callingなどの実用的タスクのサポート
-* Support for practical task formats such as RAG (Retrieval-Augmented Generation), Information Extraction, Classification, and Tool Calling.
+    * RAG・情報抽出・分類・Tool Callingなどの実用的タスクのサポート
+    * Support for practical task formats such as RAG (Retrieval-Augmented Generation), Information Extraction, Classification, and Tool Calling.
 
-* 画像とテキストを組み合わせたマルチモーダル対応の検討
-* Exploration of multimodal task support (Image + Text).
+    * 画像とテキストを組み合わせたマルチモーダル対応の検討
+    * Exploration of multimodal task support (Image + Text).
 
 2. Evaluation Ecosystem (評価エコシステムの進化)
-* AI自動採点（Judge Model）と手動評価のハイブリッドシステム
-* Development of a hybrid scoring system combining AI-assisted grading (Judge Model) and Human Review.
+    *AI自動採点（Judge Model）と手動評価のハイブリッドシステム
+    * Development of a hybrid scoring system combining AI-assisted grading (Judge Model) and Human Review.
 
-* 複数モデル（Gemini, GPT, Local LLM等）の同時比較インターフェース
-* Addition of a side-by-side comparison interface to evaluate multiple models simultaneously.
+    * 複数モデル（Gemini, GPT, Local LLM等）の同時比較インターフェース
+    * Addition of a side-by-side comparison interface to evaluate multiple models simultaneously.
 
 3. Usability & Tooling (ユーザビリティの強化)
-* Webベースのタスク作成ツールの高度化（バリデーション、重複チェック等）
-* Refinement of the Web-based Task Creation Tool (Validation, Duplication checks).
+    * Webベースのタスク作成ツールの高度化（バリデーション、重複チェック等）
+    * Refinement of the Web-based Task Creation Tool (Validation, Duplication checks).
 
-* Windows他環境向けのセットアップ支援機能
-* Provision of setup support features for native Windows environments, Etc.
+    * Windows他環境向けのセットアップ支援機能
+    * Provision of setup support features for native Windows environments, Etc.
 
 4. Community & Sharing (共有機能の模索)
-* タスクや評価結果のシームレスな共有・エクスポート機能
-* Features to easily export and share created tasks and evaluation results.
+    * タスクや評価結果のシームレスな共有・エクスポート機能
+    * Features to easily export and share created tasks and evaluation results.
 
-* 日本語他独自の文脈や文化を反映した「標準ベンチマークセット」の構築
-* Development of a "Japanese, Etc. Standard Benchmark Set" reflecting unique linguistic and cultural contexts.
-
-
+    * 日本語他独自の文脈や文化を反映した「標準ベンチマークセット」の構築
+    * Development of a "Japanese, Etc. Standard Benchmark Set" reflecting unique linguistic and cultural contexts.
