@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create NLP Task • Benchmark Harness</title>
+    <link rel="stylesheet" href="/ui/style.css?v=20260110_6" />
+    <style>
+        .create-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .form-card {
+            background: var(--panel);
+            padding: 2.5rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-family: inherit;
+            transition: all var(--transition-base);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--surface-hover);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .submit-btn {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: var(--radius-full);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .submit-btn:hover {
+            background: var(--primary-strong);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            transition: color var(--transition-base);
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        .helper-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="nav-bar">
+        <a href="/ui/index.html" class="nav-brand">Benchmark Harness</a>
+        <div class="nav-tabs">
+            <a href="/ui/nlp/index.html" class="nav-tab active">NLP Tasks</a>
+            <a href="/ui/index.html" class="nav-tab">Code Tasks</a>
+        </div>
+        <div class="nav-spacer"></div>
+    </nav>
+
+    <main class="create-container">
+        <a href="/ui/nlp/index.html" class="back-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Back to NLP Dashboard
+        </a>
+
+        <div class="form-card">
+            <h1>Create New Japanese NLP Task</h1>
+            <p class="tagline" style="margin-bottom: 2rem; color: var(--text-muted);">新しい日本語NLPベンチマークタスクを簡単に追加できます。</p>
+
+            <form id="create-task-form">
+                <div class="form-group">
+                    <label for="task-name">Task Name (日本語でもOK)</label>
+                    <input type="text" id="task-name" placeholder="例: 住所抽出, 敬語変換など" required />
+                    <div class="helper-text">タスクのタイトルです。IDはこの名前から英数字のみを抽出して自動生成されます。</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="instructions">Instructions / Prompt (日本語)</label>
+                    <textarea id="instructions" placeholder="モデルへの指示を入力してください。" required></textarea>
+                    <div class="helper-text">モデルに何をしてほしいかを日本語で記述してください。</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="reference-answer">Reference Answer / Few-shot Example (日本語)</label>
+                    <textarea id="reference-answer" placeholder="理想的な回答（または将来の評価用参考回答）を入力してください。" required></textarea>
+                    <div class="helper-text">正しい回答の形式や内容を記述します。将来的にJudge Modelでの自動評価に使用されます。</div>
+                </div>
+
+                <div id="status-message" class="status" style="margin-top: 1rem;"></div>
+
+                <div class="button-group">
+                    <button type="button" class="ghost"
+                        onclick="window.location.href='/ui/nlp/index.html'">Cancel</button>
+                    <button type="submit" id="submit-btn" class="submit-btn">
+                        <span>Generate Task</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 11 12 14 22 4"></polyline>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="/ui/nlp/create.js" type="module"></script>
+    <script type="module">
+        import { initTheme } from '../components.js';
+        document.addEventListener('DOMContentLoaded', initTheme);
+    </script>
+</body>
+
+</html>

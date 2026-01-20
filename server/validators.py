@@ -33,7 +33,9 @@ class ValidatedRunRequest(BaseModel):
     response_text: str | None = None
     thinking_level: str | None = Field(default=None, max_length=64)
     include_thinking_variants: bool = False
+    include_thinking_variants: bool = False
     sweep_thinking_levels: bool = False
+    lenient_patching: bool = False
 
     model_allowlist: list[str] | None = None
 

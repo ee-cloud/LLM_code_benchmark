@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Code Tasks • Benchmark Harness</title>
   <link rel="stylesheet" href="/ui/style.css?v=20260110_6" />
 </head>
+
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
   <nav class="nav-bar" role="navigation" aria-label="Main navigation">
     <a href="/ui/index.html" class="nav-brand">Benchmark Harness</a>
     <div class="nav-tabs">
+      <a href="/ui/nlp/index.html" class="nav-tab">NLP Tasks</a>
       <a href="/ui/index.html" class="nav-tab active" aria-current="page">Code Tasks</a>
-      <!-- <a href="/ui/qa/index.html" class="nav-tab">QA Questions</a> -->
+      <!--- <a href="/ui/qa/index.html" class="nav-tab">QA Questions</a> --->
     </div>
     <div class="nav-spacer"></div>
     <!-- Theme Toggle will be inserted here by components.js -->
@@ -116,9 +119,9 @@
           </div>
         </details>
         <button type="submit" id="run-button">Start Run</button>
-            <div class="launch-info" id="launch-info">
-        <span>Latest run ID:</span> <span id="latest-run-id">—</span>
-      </div>
+        <div class="launch-info" id="launch-info">
+          <span>Latest run ID:</span> <span id="latest-run-id">—</span>
+        </div>
 
       </form>
       <div id="run-status" class="status"></div>
@@ -129,29 +132,31 @@
       <div id="leaderboard-status" class="status"></div>
       <div id="leaderboard-filter-container"></div>
       <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Model</th>
-            <th>Best Accuracy</th>
-            <th>Cost @ Best Accuracy (USD)</th>
-            <th>Duration @ Best Accuracy (s)</th>
-            <th>Runs</th>
-            <th>Thinking Level</th>
-            <th class="actions-header">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="leaderboard-body"></tbody>
-      </table>
+        <table>
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>Best Accuracy</th>
+              <th>Cost @ Best Accuracy (USD)</th>
+              <th>Duration @ Best Accuracy (s)</th>
+              <th>Runs</th>
+              <th>Thinking Level</th>
+              <th class="actions-header">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body"></tbody>
+        </table>
       </div>
     </section>
 
-    <section class="card accent-card results-card results-empty" id="results-card" hidden aria-labelledby="results-heading">
+    <section class="card accent-card results-card results-empty" id="results-card" hidden
+      aria-labelledby="results-heading">
       <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
         <h2 id="results-heading">Latest Run Results (<span id="run-id"></span>)</h2>
         <div class="export-buttons" id="export-buttons">
           <button type="button" class="ghost" id="export-csv-btn" aria-label="Export results to CSV">Export CSV</button>
-          <button type="button" class="ghost" id="export-json-btn" aria-label="Export results to JSON">Export JSON</button>
+          <button type="button" class="ghost" id="export-json-btn" aria-label="Export results to JSON">Export
+            JSON</button>
         </div>
       </div>
       <div class="results-placeholder" id="results-placeholder">
@@ -161,46 +166,47 @@
       <div class="metrics" id="aggregate-metrics"></div>
       <div id="results-filter-container"></div>
       <div class="table-wrapper">
-      <table id="results-table">
-        <thead>
-          <tr>
-            <th class="task-header">Task</th>
-            <th>Thinking</th>
-            <th>Status</th>
-            <th>Duration (s)</th>
-            <th>Prompt Tokens</th>
-            <th>Completion Tokens</th>
-            <th>Cost (USD)</th>
-            <th>Error</th>
-          </tr>
-        </thead>
-        <tbody id="results-body"></tbody>
-      </table>
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th class="task-header">Task</th>
+              <th>Thinking</th>
+              <th>Status</th>
+              <th>Duration (s)</th>
+              <th>Prompt Tokens</th>
+              <th>Completion Tokens</th>
+              <th>Cost (USD)</th>
+              <th>Error</th>
+            </tr>
+          </thead>
+          <tbody id="results-body"></tbody>
+        </table>
       </div>
     </section>
     <section class="card recent-card" aria-labelledby="history-heading">
       <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
         <h2 id="history-heading">Recent Runs</h2>
         <div class="export-buttons">
-          <button type="button" class="ghost" id="export-history-csv" aria-label="Export history to CSV">Export CSV</button>
+          <button type="button" class="ghost" id="export-history-csv" aria-label="Export history to CSV">Export
+            CSV</button>
         </div>
       </div>
       <div class="table-wrapper">
-      <table id="history-table">
-        <thead>
-          <tr>
-            <th>Run ID</th>
-            <th>Timestamp</th>
-            <th>Model(s)</th>
-            <th>Accuracy</th>
-            <th>Total Cost (USD)</th>
-            <th>Duration (s)</th>
-            <th>Errors</th>
-            <th class="actions-header">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="history-body"></tbody>
-      </table>
+        <table id="history-table">
+          <thead>
+            <tr>
+              <th>Run ID</th>
+              <th>Timestamp</th>
+              <th>Model(s)</th>
+              <th>Accuracy</th>
+              <th>Total Cost (USD)</th>
+              <th>Duration (s)</th>
+              <th>Errors</th>
+              <th class="actions-header">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="history-body"></tbody>
+        </table>
       </div>
       <div id="history-pagination"></div>
     </section>
@@ -209,4 +215,5 @@
   <script src="/ui/model-source.js?v=20260110_6"></script>
   <script src="/ui/main.js?v=20260110_6" type="module"></script>
 </body>
+
 </html>

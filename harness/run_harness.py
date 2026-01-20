@@ -576,7 +576,7 @@ def should_include_in_prompt(path: Path) -> bool:
     return path.suffix.lower() in SUPPORTED_EXTENSIONS
 
 
-def build_prompt(task_id: str, metadata: dict, include_tests: bool = False) -> str:
+def build_prompt(task_id: str, metadata: dict, include_tests: bool = False, scoring_mode: str | None = None) -> str:
     task_dir = TASKS_ROOT / task_id
     instructions_path = task_dir / metadata["instructions_file"]
     if not instructions_path.exists():
@@ -647,23 +647,40 @@ def build_prompt(task_id: str, metadata: dict, include_tests: bool = False) -> s
     task_hint = TASK_HINTS.get(task_id)
     hint_block = f"\n\nTask-specific guidance:\n{task_hint}" if task_hint else ""
 
-    prompt = textwrap.dedent(
-        f"""
-        You are an autonomous software developer. Apply a minimal fix to satisfy the task instructions and existing tests.
+    if scoring_mode == "human_review":
+        prompt = textwrap.dedent(
+            f"""
+            You are an autonomous software developer.
+            
+            Task instructions:
+            {instructions}
 
-        Task instructions:
-        {instructions}
+            {hint_block}
 
-        {diff_guide}
+            Return the requested content to satisfy the task.
+            
+            Project context:
+            {os.linesep.join(contextual_snippets)}
+            """
+        ).strip()
+    else:
+        prompt = textwrap.dedent(
+            f"""
+            You are an autonomous software developer. Apply a minimal fix to satisfy the task instructions and existing tests.
 
-        {hint_block}
+            Task instructions:
+            {instructions}
 
-        Return a unified diff patch enclosed in a single ```diff fenced code block and nothing else.
+            {diff_guide}
 
-        Project context:
-        {os.linesep.join(contextual_snippets)}
-        """
-    ).strip()
+            {hint_block}
+
+            Return a unified diff patch enclosed in a single ```diff fenced code block and nothing else.
+
+            Project context:
+            {os.linesep.join(contextual_snippets)}
+            """
+        ).strip()
 
     return prompt
 
@@ -1640,12 +1657,18 @@ def apply_patch(
     allow_diff_rewrite_fallback: bool,
     attempt_summary: dict,
     attempt_dir: Path,
+    lenient_patching: bool = False,
 ) -> None:
     cleaned_patch, git_style, synthetic_headers = clean_patch_text(patch_text)
     patch_bytes = cleaned_patch.encode("utf-8")
 
     patch_args = ["patch", "--force", "-p1" if git_style else "-p0"]
     dry_run_args = ["patch", "--dry-run", "--force", "-p1" if git_style else "-p0"]
+
+    if lenient_patching:
+        # Relax patch strictness for models that struggle with context matching
+        patch_args.extend(["--ignore-whitespace", "--fuzz=3"])
+        dry_run_args.extend(["--ignore-whitespace", "--fuzz=3"])
 
     dry_run = _run_patch_command(dry_run_args, patch_bytes, workspace_path)
     if dry_run.returncode != 0:
@@ -1739,9 +1762,14 @@ def evaluate_attempt(
     response_override: str | None,
     allow_incomplete_diffs: bool,
     allow_diff_rewrite_fallback: bool,
+    lenient_patching: bool,
     run_dir: Path,
 ) -> dict:
-    prompt = build_prompt(task_id, metadata, include_tests=include_tests)
+    # Check for "human_review" scoring mode early for prompt building
+    eval_config = metadata.get("eval", {})
+    scoring_mode = eval_config.get("scoring")
+    
+    prompt = build_prompt(task_id, metadata, include_tests=include_tests, scoring_mode=scoring_mode)
 
     # Use the requested thinking level for artifact directory suffix so that
     # base/low/medium/high attempts never collide, even when reasoning is unsupported.
@@ -1773,6 +1801,7 @@ def evaluate_attempt(
         "error": None,
         "attempt_dir": str(attempt_dir.relative_to(run_dir)),
         "attempt_dir_abs": str(attempt_dir),
+        "prompt_excerpt": prompt[:2000] if prompt else "",
     }
 
     model_info = model_metadata.get(model) or {}
@@ -1837,6 +1866,22 @@ def evaluate_attempt(
         store_text(attempt_dir / "response.json", json.dumps(response_meta, indent=2))
         usage = response_meta.get("usage")
 
+    if response_meta is not None:
+        store_text(attempt_dir / "response.json", json.dumps(response_meta, indent=2))
+        usage = response_meta.get("usage")
+
+    # Handle "human_review" scoring mode (already extracted above)
+    if scoring_mode == "human_review":
+        attempt_summary.update({
+            "status": "review_needed",
+            "response_excerpt": raw_response[:4000] if raw_response else "",
+        })
+        # Ensure metrics are recorded even for human review
+        attempt_summary["usage"] = usage
+        attempt_summary["api_latency_seconds"] = api_latency
+        attempt_summary["duration_seconds"] = time.perf_counter() - attempt_timer
+        return attempt_summary
+
     workspace_path: Path | None = None
     try:
         patch_text = extract_patch(raw_response, allow_incomplete_diffs=allow_incomplete_diffs)
@@ -1851,6 +1896,7 @@ def evaluate_attempt(
             allow_diff_rewrite_fallback=allow_diff_rewrite_fallback,
             attempt_summary=attempt_summary,
             attempt_dir=attempt_dir,
+            lenient_patching=lenient_patching,
         )
 
         eval_config = metadata.get("eval", {})
@@ -2869,6 +2915,7 @@ def run_tasks(
     response_text: str | None = None,
     allow_incomplete_diffs: bool | None = None,
     allow_diff_rewrite_fallback: bool | None = None,
+    lenient_patching: bool = False,
     progress_callback: Callable[[str, str, int, dict], None] | None = None,
     run_id: str | None = None,
 ) -> dict:
@@ -2942,6 +2989,7 @@ def run_tasks(
                         response_override=response_override,
                         allow_incomplete_diffs=allow_incomplete_diffs,
                         allow_diff_rewrite_fallback=allow_diff_rewrite_fallback,
+                        lenient_patching=lenient_patching,
                         run_dir=run_dir,
                     )
                     attempts.append(attempt_summary)

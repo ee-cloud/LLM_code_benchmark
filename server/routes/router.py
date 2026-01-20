@@ -85,7 +85,9 @@ class RunRequestPayload(BaseModel):
     response_text: str | None = None
     thinking_level: str | None = None
     include_thinking_variants: bool = False
+    include_thinking_variants: bool = False
     sweep_thinking_levels: bool = False
+    lenient_patching: bool = False
 
 
 @router.get("/", include_in_schema=False)
@@ -99,8 +101,8 @@ def health() -> dict[str, str]:
 
 
 @router.get("/runs", response_model=RunListResponse, tags=["runs"])
-def list_runs(limit: int = 50) -> RunListResponse:
-    rows = database.list_runs(limit)
+def list_runs(limit: int = 50, tag: str | None = None) -> RunListResponse:
+    rows = database.list_runs(limit=limit, tag=tag)
     summaries = [
         RunSummary(
             run_id=row["id"],
@@ -124,8 +126,8 @@ def get_run(run_id: str) -> RunDetailResponse:
 
 
 @router.get("/leaderboard", tags=["leaderboard"])
-def get_leaderboard() -> dict[str, Any]:
-    rows = database.leaderboard()
+def get_leaderboard(tag: str | None = None) -> dict[str, Any]:
+    rows = database.leaderboard(tag=tag)
     return {
         "models": [
             {
@@ -139,6 +141,20 @@ def get_leaderboard() -> dict[str, Any]:
             for row in rows
         ]
     }
+
+
+@router.get("/tasks", tags=["tasks"])
+def list_tasks() -> list[dict[str, Any]]:
+    # Project root is two levels up from this file's directory
+    catalog_path = Path(__file__).resolve().parents[2] / "tasks" / "catalog.json"
+    if not catalog_path.exists():
+        return []
+    try:
+        with open(catalog_path, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        logger.error("failed_to_load_catalog", error=str(e))
+        raise HTTPException(status_code=500, detail="Failed to load task catalog")
 
 
 @router.post("/runs", response_model=RunLaunchResponse, tags=["runs"])
@@ -171,7 +187,9 @@ async def create_run(request: RunRequestPayload, _: None = Depends(require_api_t
             "allow_diff_rewrite_fallback": validated.allow_diff_rewrite_fallback,
             "thinking_level": validated.thinking_level,
             "include_thinking_variants": validated.include_thinking_variants,
+            "include_thinking_variants": validated.include_thinking_variants,
             "sweep_thinking_levels": validated.sweep_thinking_levels,
+            "lenient_patching": validated.lenient_patching,
         },
     )
 
@@ -219,6 +237,7 @@ async def create_run(request: RunRequestPayload, _: None = Depends(require_api_t
             install_deps=validated.install_deps,
             allow_incomplete_diffs=validated.allow_incomplete_diffs,
             allow_diff_rewrite_fallback=validated.allow_diff_rewrite_fallback,
+            lenient_patching=validated.lenient_patching,
             output_dir=output_dir,
             response_text=validated.response_text,
             progress_callback=progress_proxy,
@@ -932,4 +951,172 @@ def list_llamaserver_models() -> dict[str, Any]:
         "base_url": base_url,
         "models": models,
     }
+
+class UpdateStatusRequest(BaseModel):
+    task_id: str
+    sample_index: int
+    new_status: str
+
+
+@router.post("/runs/{run_id}/update_status")
+def update_status(run_id: str, payload: UpdateStatusRequest) -> dict[str, str]:
+    validate_run_id(run_id)
+    run_dir = HARNESS_SETTINGS.runs_root / run_id
+    summary_path = run_dir / "summary.json"
+    
+    if not summary_path.exists():
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    try:
+        with open(summary_path, encoding="utf-8") as f:
+            summary = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        raise HTTPException(status_code=500, detail="Failed to load run summary")
+
+    attempts = summary.get("attempts", [])
+    target_attempt = None
+    
+    # Debug log
+    logger.info("update_status_request", run_id=run_id, payload=payload.dict(), attempts_count=len(attempts))
+
+    for attempt in attempts:
+        # Normalize types for comparison
+        att_task = attempt.get("task_id")
+        att_sample = attempt.get("sample_index")
+        
+        # Handle cases where sample_index might be missing (default to 0) or different type
+        if att_sample is None: 
+            att_sample = 0
+            
+        if (str(att_task) == str(payload.task_id) and 
+            int(att_sample) == int(payload.sample_index)):
+            target_attempt = attempt
+            break
+            
+    if not target_attempt:
+        logger.error("attempt_not_found", run_id=run_id, task_id=payload.task_id, sample=payload.sample_index)
+        raise HTTPException(status_code=404, detail=f"Attempt not found: {payload.task_id} sample {payload.sample_index}")
+
+    target_attempt["status"] = payload.new_status
+    
+    # Save back to JSON
+    try:
+        with open(summary_path, "w", encoding="utf-8") as f:
+            json.dump(summary, f, indent=2)
+    except OSError:
+        raise HTTPException(status_code=500, detail="Failed to save run summary")
+
+    # Update Database
+    try:
+        database.save_run(summary)
+    except Exception as e:
+        logger.error("failed_to_update_db", error=str(e))
+        # Don't fail the request if DB update fails, as file is source of truth? 
+        # But consistent state is better. For now, log and proceed is safer for a prototype feature.
+
+    return {"status": "ok", "new_status": payload.new_status}
+
+
+class NlpTaskCreateRequest(BaseModel):
+    name: str
+    instructions: str
+    reference_answer: str
+
+
+@router.post("/tasks/nlp")
+def create_nlp_task(
+    payload: NlpTaskCreateRequest, _: None = Depends(require_api_token)
+) -> dict[str, str]:
+    """Create a new Japanese NLP task."""
+    # 1. Generate task_id from name
+    # Only keep alphanumeric and underscores, lowercase
+    clean_name = re.sub(r"[^a-zA-Z0-9]+", "_", payload.name).lower().strip("_")
+    if not clean_name:
+        raise HTTPException(status_code=400, detail="Invalid task name for ID generation")
+    
+    task_id = f"nlp_japanese_{clean_name}"
+
+    # 2. Check if directory already exists
+    tasks_root = Path(__file__).resolve().parents[2] / "tasks"
+    task_dir = tasks_root / task_id
+    if task_dir.exists():
+        raise HTTPException(
+            status_code=400, detail=f"Task ID '{task_id}' already exists"
+        )
+
+    # 3. Create directory structure
+    try:
+        task_dir.mkdir(parents=True)
+        (task_dir / "workspace").mkdir()
+        (task_dir / "tests").mkdir()
+
+        # 4. Generate files
+        # metadata.json
+        metadata = {
+            "task_id": task_id,
+            "language": "japanese",
+            "type": "nlp_task",
+            "difficulty": "medium",
+            "instructions_file": "instructions.md",
+            "workspace_dir": "workspace",
+            "tests_dir": "tests",
+            "eval": {
+                "command": ["echo", "Human review task"],
+                "scoring": "human_review"
+            },
+            "tags": ["nlp", "japanese", "generation"],
+            "path": f"tasks/{task_id}",
+        }
+        with open(task_dir / "metadata.json", "w", encoding="utf-8") as f:
+            json.dump(metadata, f, indent=2, ensure_ascii=False)
+
+        # instructions.md
+        instructions_content = f"""# {payload.name}
+
+## 指示
+{payload.instructions}
+
+## 参考回答 (Reference Answer for Judge Model)
+{payload.reference_answer}
+"""
+        with open(task_dir / "instructions.md", "w", encoding="utf-8") as f:
+            f.write(instructions_content)
+
+        # workspace/README.md
+        with open(task_dir / "workspace" / "README.md", "w", encoding="utf-8") as f:
+            f.write("# Workspace\nPlace generated files here.\n")
+
+        # tests/test_dummy.py
+        with open(task_dir / "tests" / "test_dummy.py", "w", encoding="utf-8") as f:
+            f.write("# Dummy test file for human review task\n\ndef test_placeholder():\n    pass\n")
+
+        # 5. Update catalog.json
+        catalog_path = tasks_root / "catalog.json"
+        if catalog_path.exists():
+            with open(catalog_path, "r", encoding="utf-8") as f:
+                catalog = json.load(f)
+            
+            # Check for duplicates in catalog just in case
+            if not any(t.get("task_id") == task_id for t in catalog):
+                catalog.append(
+                    {
+                        "task_id": task_id,
+                        "language": "japanese",
+                        "type": "nlp_task",
+                        "difficulty": "medium",
+                        "tags": ["nlp", "japanese", "generation"],
+                        "path": f"tasks/{task_id}",
+                    }
+                )
+                with open(catalog_path, "w", encoding="utf-8") as f:
+                    json.dump(catalog, f, indent=2, ensure_ascii=False)
+
+        return {"status": "ok", "task_id": task_id}
+
+    except Exception as e:
+        logger.exception("failed_to_create_task", error=str(e))
+        # Cleanup if possible
+        if task_dir.exists():
+            shutil.rmtree(task_dir)
+        raise HTTPException(status_code=500, detail=f"Failed to create task: {str(e)}")
 

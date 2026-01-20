@@ -117,7 +117,21 @@ def save_run(summary: dict) -> str:
     return run_id
 
 
-def list_runs(limit: int = 50) -> list[dict[str, float | None]]:
+def _get_task_ids_by_tag(tag: str | None) -> set[str] | None:
+    if not tag:
+        return None
+    catalog_path = ROOT.parent / "tasks" / "catalog.json"
+    if not catalog_path.exists():
+        return None
+    try:
+        with open(catalog_path, encoding="utf-8") as f:
+            catalog = json.load(f)
+        return {t["task_id"] for t in catalog if tag in t.get("tags", [])}
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def list_runs(limit: int = 50, tag: str | None = None) -> list[dict[str, Any]]:
     stmt = (
         select(
             RunRecord.id,
@@ -134,8 +148,16 @@ def list_runs(limit: int = 50) -> list[dict[str, float | None]]:
     with get_session() as session:
         rows = session.execute(stmt).all()
 
+    target_task_ids = _get_task_ids_by_tag(tag)
     results = []
     for row in rows:
+        summary = json.loads(row.summary_json)
+        run_tasks = set(summary.get("tasks", []))
+        
+        # If tag is specified, only include runs that have at least one task with that tag
+        if target_task_ids is not None and not (run_tasks & target_task_ids):
+            continue
+
         results.append(
             {
                 "id": row.id,
@@ -173,7 +195,7 @@ def _determine_model_level(attempts: list[dict[str, Any]], default_level: str | 
     return "base"
 
 
-def leaderboard() -> list[dict[str, float | None]]:
+def leaderboard(tag: str | None = None) -> list[dict[str, Any]]:
     stmt = select(
         RunRecord.id,
         RunRecord.summary_json,
@@ -222,6 +244,8 @@ def leaderboard() -> list[dict[str, float | None]]:
 
     groups: dict[tuple[str, str], dict[str, Any]] = {}
 
+    target_task_ids = _get_task_ids_by_tag(tag)
+
     for row in rows:
         try:
             summary = json.loads(row.summary_json)
@@ -231,6 +255,13 @@ def leaderboard() -> list[dict[str, float | None]]:
         attempts = summary.get("attempts") or []
         if not attempts:
             continue
+            
+        # Filter attempts by tag if specified
+        if target_task_ids is not None:
+            attempts = [a for a in attempts if a.get("task_id") in target_task_ids]
+            if not attempts:
+                continue
+
         default_level = summary.get("thinking_level")
         # Group attempts per (model, thinking level)
         per_model_level: dict[tuple[str, str], list[dict[str, Any]]] = {}

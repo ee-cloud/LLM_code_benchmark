@@ -2,6 +2,7 @@ import { TASK_LANGUAGE } from './task-language.js';
 import {
   showToast,
   mapStatus,
+  applyStatus,
   createStatusBadge,
   makeSortable,
   createFilterBar,
@@ -10,6 +11,8 @@ import {
   registerShortcut,
   formatNumber,
   formatCost,
+  escapeAttr,
+  escapeHtml,
   renderTaskName,
   getTaskLanguage,
   initTheme,
@@ -201,6 +204,16 @@ function truncateForDisplay(text) {
   return `${text.slice(0, limit)}\n\n… truncated (${text.length - limit} characters omitted)`;
 }
 
+function formatThinkingLevel(level) {
+  if (!level || level === 'base') return '-';
+  // Check for budget format
+  if (level.includes('budget_tokens=')) {
+    const budget = level.split('=')[1];
+    return `Thinking (${budget})`;
+  }
+  return `Thinking (${level})`;
+}
+
 // ============================================================================
 // Syntax Highlighting for Diffs
 // ============================================================================
@@ -225,20 +238,6 @@ function highlightDiff(text) {
   return highlighted.join('\n');
 }
 
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-function escapeAttr(text) {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
 
 function addLineNumbers(text) {
   const lines = text.split('\n');
@@ -554,6 +553,16 @@ function renderAttempts(summary) {
     const statusLower = attempt.status?.toLowerCase() || '';
     const canRetry = ['error', 'fail', 'failed', 'api_error', 'exception'].includes(statusLower);
 
+    let actionsHtml = '';
+    if (statusLower === 'review_needed') {
+      actionsHtml = `
+          <button class="review-btn pass" onclick="updateReviewStatus('${runId}', '${attempt.task_id}', ${attempt.sample_index || 0}, 'passed', this)">PASS</button>
+          <button class="review-btn fail" onclick="updateReviewStatus('${runId}', '${attempt.task_id}', ${attempt.sample_index || 0}, 'failed', this)">FAIL</button>
+      `;
+    } else if (canRetry) {
+      actionsHtml = '<button class="ghost retry-single-btn" title="Retry this attempt">Retry</button>';
+    }
+
     const errorText = attempt.error || '';
     const errorTruncated = errorText.length > 80 ? errorText.substring(0, 80) + '...' : errorText;
     const errorDisplay = errorText ? `<span class="error-text" title="${escapeAttr(errorText)}">${escapeHtml(errorTruncated)}</span>` : '-';
@@ -561,13 +570,18 @@ function renderAttempts(summary) {
     row.innerHTML = `
       <td>${renderTaskName(attempt.task_id, TASK_LANGUAGE)}</td>
       <td class="status-cell ${className}"><span class="status-chip ${chip}">${label}</span></td>
-      <td class="error-cell">${errorDisplay}</td>
+      <td class="prompt-cell" title="${escapeAttr(attempt.prompt_excerpt || '')}"><div>${attempt.prompt_excerpt || '-'}</div></td>
+      <td class="response-cell" title="${escapeAttr(attempt.response_excerpt || '')}"><div>${attempt.response_excerpt || '-'}</div></td>
+      <td class="actions-cell">${actionsHtml}</td>
       <td>${formatNumber(attempt.duration_seconds)}</td>
+      <td class="error-cell">${errorDisplay}</td>
       <td>${extractTokens(attempt.usage, 'prompt')}</td>
       <td>${extractTokens(attempt.usage, 'completion')}</td>
       <td>${formatCost(attempt.cost_usd)}</td>
-      <td class="actions-cell">${canRetry ? '<button class="ghost retry-single-btn" title="Retry this attempt">Retry</button>' : ''}</td>
+      <td>${formatThinkingLevel(attempt.thinking_level_applied || 'base')}</td>
     `;
+    const promptCell = row.querySelector('.prompt-cell');
+    if (promptCell && attempt.prompt_excerpt) promptCell.title = attempt.prompt_excerpt;
 
     // Add click handler for retry button
     const retryBtn = row.querySelector('.retry-single-btn');
@@ -701,3 +715,41 @@ async function showAttemptDetail(attempt) {
     detailLogs.appendChild(details);
   });
 }
+
+window.updateReviewStatus = async function (runId, taskId, sampleIndex, newStatus, btn) {
+  if (!runId || !taskId) return;
+  const originalContent = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '...';
+
+  try {
+    const response = await fetch(`/runs/${runId}/update_status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        task_id: taskId,
+        sample_index: sampleIndex,
+        new_status: newStatus
+      })
+    });
+
+    if (!response.ok) throw new Error('Failed to update status');
+
+    // Update UI
+    const row = btn.closest('tr');
+    if (row) {
+      const statusCell = row.querySelector('.status-cell');
+      if (statusCell) {
+        applyStatus(statusCell, newStatus);
+      }
+    }
+    showToast('Status updated', 'success');
+
+  } catch (error) {
+    console.error(error);
+    showToast(`Update failed: ${error.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalContent;
+  }
+};

@@ -643,6 +643,30 @@ export function debounce(fn, delay) {
 }
 
 // ============================================================================
+// String Utilities
+// ============================================================================
+
+export function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+export function escapeAttr(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+// ============================================================================
 // Language Utilities
 // ============================================================================
 
@@ -660,7 +684,7 @@ export function renderTaskName(taskId, taskLanguageMap = {}) {
   const language = taskLanguageMap[taskId] || 'default';
   const label = LANGUAGE_LABELS[language] || LANGUAGE_LABELS.default;
   const iconClass = LANGUAGE_LABELS[language] ? language : 'default';
-  return `<span class="task-name"><span class="task-icon ${iconClass}">${label}</span><span>${taskId}</span></span>`;
+  return `<span class="task-name"><span class="task-icon ${iconClass}">${label}</span><span class="task-id-text" title="${taskId}">${taskId}</span></span>`;
 }
 
 export function getTaskLanguage(taskId, taskLanguageMap = {}) {
@@ -671,13 +695,24 @@ export function getTaskLanguage(taskId, taskLanguageMap = {}) {
 // Theme Management
 // ============================================================================
 
+const THEMES = [
+  { id: 'dark', name: 'Dark', icon: '🌙' },
+  { id: 'light', name: 'Light', icon: '💡' },
+  { id: 'third', name: 'Teal', icon: '💎' },
+  { id: 'fourth', name: 'Emerald', icon: '🌿' },
+  { id: 'cyber', name: 'Cyber', icon: '⚡' },
+  { id: 'sakura', name: 'Sakura', icon: '🌸' },
+  { id: 'sunset', name: 'Sunset', icon: '🌇' },
+  { id: 'ocean', name: 'Ocean', icon: '🌊' },
+];
+
 export function initTheme() {
   const savedTheme = localStorage.getItem('theme') || 'dark';
   setTheme(savedTheme);
 
-  // Create toggle button if it doesn't exist
-  if (!document.getElementById('theme-toggle')) {
-    createThemeToggle();
+  // Create picker if it doesn't exist
+  if (!document.getElementById('theme-picker')) {
+    createThemePicker();
   }
 
   // Inject aurora background if it doesn't exist
@@ -697,55 +732,47 @@ export function setTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('theme', theme);
 
-  const icon = document.querySelector('.theme-icon');
-  if (icon) {
-    if (theme === 'dark') icon.textContent = '☀️';
-    else if (theme === 'light') icon.textContent = '🌿';
-    else if (theme === 'third') icon.textContent = '🌑';
-    else icon.textContent = '🌙';
-  }
+  // Update active state in picker
+  document.querySelectorAll('.theme-swatch').forEach(swatch => {
+    swatch.classList.toggle('active', swatch.dataset.themeId === theme);
+  });
 }
 
 export function toggleTheme() {
   const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-  let newTheme = 'dark';
-  if (currentTheme === 'dark') newTheme = 'light';
-  else if (currentTheme === 'light') newTheme = 'third';
-  else if (currentTheme === 'third') newTheme = 'fourth';
-  else newTheme = 'dark';
-  setTheme(newTheme);
+  const currentIndex = THEMES.findIndex(t => t.id === currentTheme);
+  const nextIndex = (currentIndex + 1) % THEMES.length;
+  setTheme(THEMES[nextIndex].id);
 }
 
-function createThemeToggle() {
+function createThemePicker() {
   const navSpacer = document.querySelector('.nav-spacer');
   if (!navSpacer) return;
 
-  const btn = document.createElement('button');
-  btn.id = 'theme-toggle';
-  btn.className = 'ghost theme-toggle-btn';
-  btn.setAttribute('aria-label', 'Toggle light/dark mode');
-  btn.innerHTML = `<span class="theme-icon"></span>`;
-  btn.style.marginLeft = '1rem';
-  btn.style.fontSize = '1.2rem';
-  btn.style.padding = '0.4rem';
-  btn.style.minWidth = '40px';
-  btn.style.height = '40px';
+  const container = document.createElement('div');
+  container.id = 'theme-picker';
+  container.className = 'theme-picker';
 
-  btn.addEventListener('click', toggleTheme);
+  THEMES.forEach(theme => {
+    const swatch = document.createElement('div');
+    swatch.className = 'theme-swatch';
+    swatch.dataset.themeId = theme.id;
+    swatch.title = theme.name;
+    swatch.textContent = theme.icon;
+
+    // Set active if it matches current
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    if (currentTheme === theme.id) swatch.classList.add('active');
+
+    swatch.addEventListener('click', () => setTheme(theme.id));
+    container.appendChild(swatch);
+  });
 
   // Insert before the shortcuts help
   const shortcuts = document.querySelector('.nav-shortcuts');
   if (shortcuts) {
-    shortcuts.parentNode.insertBefore(btn, shortcuts);
+    shortcuts.parentNode.insertBefore(container, shortcuts);
   } else {
-    navSpacer.parentNode.appendChild(btn);
+    navSpacer.parentNode.appendChild(container);
   }
-
-  // Set initial icon
-  const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-  const icon = btn.querySelector('.theme-icon');
-  if (currentTheme === 'dark') icon.textContent = '☀️';
-  else if (currentTheme === 'light') icon.textContent = '🌿';
-  else if (currentTheme === 'third') icon.textContent = '🌑';
-  else icon.textContent = '🌙';
 }
