@@ -244,6 +244,7 @@ Happy benchmarking! Feel free to extend the catalog, customize the dashboard, or
 
 
 ---
+以降，forkリポジトリの追記   Modifications by ee-cloud (details below)  :
 
 ## 💡 This Fork: Windows 11 & llama-server Optimization & Other
 
@@ -285,15 +286,50 @@ Special thanks to TechNavii for this great project.
     * Enhanced UI/UX and design tweaks for the dashboard.
     * *Note: Currently optimized for **Code Tasks** only; QA Tasks are not yet supported.*
 
-### 📅 今後のロードマップ (Roadmap)
-* **Manual Evaluation for Japanese NLP Tasks**
+* **Manual Evaluation for Japanese NLP Tasks**　(experimental)
     * 既存の自動評価（Code Taskのdiff自動評価、QA TaskのJudge Model自動評価）に加え、日本語NLPタスクにおいてユーザー自身が回答を直接評価・採点できる手動評価モードの追加を検討しています。
     * Planned addition of a **Manual Evaluation Mode** for Japanese NLP tasks, complementing the existing automated evaluations (diff-based for Code Tasks and Judge Model-based for QA Tasks).
 
-* **Web-based Task Creation Tool**
+* **Web-based Task Creation Tool**　(experimental)
     * 必要な内容を画面から入力するだけで、新規タスクの構成ファイル生成からシステムへの自動登録までを完結させる機能を検討しています。
     * Planned development of a web-based tool to easily create, configure, and instantly register new tasks via a simple UI.
 
 ### 🛠 Tips for Windows Users
 * **UI Refresh**: 変更が反映されない場合は、ブラウザで `Ctrl + F5`（キャッシュクリア）を試してください。
 * If UI updates aren't visible, please use `Ctrl + F5` to bypass the browser cache.
+
+---
+### 📅 今後のロードマップ (Roadmap)
+
+Note: 以下の項目は現時点での実験的なアイデアや将来的な理想を多く含んでいます。これらはあくまで作者の想像の域を出ないものも含まれますが、可能性を広げるために検討したいと思います。
+Note: The following items are currently in the conceptual stage and include many experimental ideas and future "visions." While some of these may be purely speculative at this point, we intend to explore these possibilities to expand the project's potential.
+
+1. Advanced Task Expansion (高度なタスクの拡充)
+RAG・情報抽出・分類・Tool Callingなどの実用的タスクのサポート
+Support for practical task formats such as RAG (Retrieval-Augmented Generation), Information Extraction, Classification, and Tool Calling.
+
+画像とテキストを組み合わせたマルチモーダル対応の検討
+Exploration of multimodal task support (Image + Text).
+
+2. Evaluation Ecosystem (評価エコシステムの進化)
+AI自動採点（Judge Model）と手動評価のハイブリッドシステム
+
+Development of a hybrid scoring system combining AI-assisted grading (Judge Model) and Human Review.
+複数モデル（Gemini, GPT, Local LLM等）の同時比較インターフェース
+
+Addition of a side-by-side comparison interface to evaluate multiple models simultaneously.
+
+3. Usability & Tooling (ユーザビリティの強化)
+Webベースのタスク作成ツールの高度化（バリデーション、重複チェック等）
+Refinement of the Web-based Task Creation Tool (Validation, Duplication checks).
+
+Windows他環境向けのセットアップ支援機能
+Provision of setup support features for native Windows environments, Etc.
+
+4. Community & Sharing (共有機能の模索)
+タスクや評価結果のシームレスな共有・エクスポート機能
+Features to easily export and share created tasks and evaluation results.
+日本語他独自の文脈や文化を反映した「標準ベンチマークセット」の構築
+Development of a "Japanese, Etc. Standard Benchmark Set" reflecting unique linguistic and cultural contexts.
+
+
